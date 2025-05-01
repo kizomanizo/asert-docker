@@ -4,6 +4,7 @@ asert-client/
 asert-rabbitmq/
 asert-postgres/
 asert-gateway/
+asert-webhooks/
 
 # Other Files
 Dockerfile.build
