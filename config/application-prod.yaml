@@ -1,0 +1,6 @@
+logging:
+    level:
+        root: ERROR
+        tz.go.mohz.hfr: ERROR
+    file:
+        name: logs/application-prod.log

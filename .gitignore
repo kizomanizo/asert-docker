@@ -1,0 +1,20 @@
+# Other App Folders
+asert-api/
+asert-client/
+asert-rabbitmq/
+asert-postgres/
+asert-gateway/
+
+# Other Files
+Dockerfile.build
+docker
+dump.sql
+config/application.yaml
+config/.env
+config/keys/*
+config/github.properties
+volumes/
+docker-compose.override.yml
+
+# IDE Files
+.vscode

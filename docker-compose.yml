@@ -1,0 +1,94 @@
+services:
+  asert-db:
+    image: postgres:13
+    container_name: asert-db
+    env_file:
+      - config/.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./volumes/postgres-data:/var/lib/postgresql/data
+    networks:
+      - asert-network
+
+  asert-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: asert-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - asert-db
+      - asert-rabbitmq
+    env_file:
+      - config/.env
+    environment:
+      # SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/asert
+      SPRING_DATASOURCE_URL: jdbc:postgresql://asert-db:5432/asert
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_RABBITMQ_HOST: asert-rabbitmq
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    volumes:
+      - ./volumes/jasper-reports:/app/asert-jasper-reports
+      - ./volumes/uploaded-files:/app/asert-file-uploads
+    networks:
+      - asert-network
+    entrypoint: [ "./wait-for-it.sh", "asert-rabbitmq:5672", "--", "java", "-jar", "app.jar" ]
+
+  asert-pgadmin:
+    image: elestio/pgadmin:latest
+    container_name: asert-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_USERNAME: ${PGADMIN_DEFAULT_USERNAME}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_PORT: 8081
+    ports:
+      - "8082:8081"
+    volumes:
+      - ./volumes/pgadmin-data/servers.json:/pgadmin4/servers.json
+    networks:
+      - asert-network
+
+  asert-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: asert-rabbitmq
+    hostname: asert-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - ./volumes/rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - asert-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+  jasper-reports:
+  uploaded-files:
+  rabbitmq-data:
+
+
+networks:
+  asert-network:
+    driver: bridge
