@@ -1,6 +1,6 @@
 logging:
-    level:
-        root: ERROR
-        tz.go.mohz.hfr: ERROR
-    file:
-        name: logs/application-prod.log
+  level:
+    root: ERROR
+    tz.go.mnrt.asert: ERROR
+  file:
+    name: logs/application-prod.log
