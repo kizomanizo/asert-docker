@@ -2,8 +2,6 @@ services:
   asert-db:
     image: postgres:13
     container_name: asert-db
-    env_file:
-      - config/.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -25,8 +23,6 @@ services:
     depends_on:
       - asert-db
       - asert-rabbitmq
-    env_file:
-      - config/.env
     environment:
       # SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/asert
       SPRING_DATASOURCE_URL: jdbc:postgresql://asert-db:5432/asert
@@ -47,12 +43,12 @@ services:
   asert-pgadmin:
     image: elestio/pgadmin:latest
     container_name: asert-pgadmin
-    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_USERNAME: ${PGADMIN_DEFAULT_USERNAME}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       PGADMIN_LISTEN_PORT: 8081
+    restart: unless-stopped
     ports:
       - "8082:8081"
     volumes:
@@ -63,14 +59,13 @@ services:
   asert-rabbitmq:
     image: rabbitmq:3-management
     container_name: asert-rabbitmq
-    hostname: asert-rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - ./volumes/rabbitmq-data:/var/lib/rabbitmq
     networks:
